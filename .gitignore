@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.template
+runs/
+__pycache__/
+*.pyc
+.venv/
+venvs/
+template_reference/
