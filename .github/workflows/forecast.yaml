@@ -1,0 +1,27 @@
+name: Forecast FutureEval (Summer 2026)
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"   # every 20 min; questions open in ~3h windows
+  workflow_dispatch:          # manual trigger
+
+concurrency:
+  group: forecast
+  cancel-in-progress: false
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.18"
+      - name: Forecast open questions
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          METACULUS_TOKEN: ${{ secrets.METACULUS_TOKEN }}
+          TOURNAMENT_ID: summer-futureeval-2026
+        run: uv run python main.py --tournament summer-futureeval-2026 --submit
