@@ -49,13 +49,19 @@ async def _call_claude(user_prompt: str) -> str:
                 return "".join(
                     b.text for b in msg.content if b.type == "text"
                 )
-            except (
-                anthropic.RateLimitError,
-                anthropic.InternalServerError,
-                anthropic.APIConnectionError,
-            ) as exc:
+            except anthropic.APIConnectionError as exc:
                 wait = 5 * (2**attempt)
-                log.warning("Claude call failed (%s); retry in %ss", exc, wait)
+                log.warning("Claude connection error (%s); retry in %ss", exc, wait)
+                await asyncio.sleep(wait)
+            except anthropic.APIStatusError as exc:
+                # Retry transient server/rate statuses (429, 500, 502, 503, 529
+                # "overloaded"); re-raise client errors (400/401/404) immediately.
+                if exc.status_code not in (429, 500, 502, 503, 529):
+                    raise
+                wait = 5 * (2**attempt)
+                log.warning(
+                    "Claude transient %s; retry in %ss", exc.status_code, wait
+                )
                 await asyncio.sleep(wait)
         raise RuntimeError("Claude call failed after retries")
 
