@@ -12,10 +12,11 @@ from dotenv import load_dotenv
 
 BOT_DIR = Path(__file__).resolve().parent.parent
 
-# Load shared project .env first (ANTHROPIC_API_KEY etc.), then local overrides.
-_SHARED_ENV = Path("/workspace-vast/nickj/projects/.env")
-if _SHARED_ENV.exists():
-    load_dotenv(_SHARED_ENV)
+# Optionally load a shared .env first (path via SHARED_ENV_PATH), then local
+# overrides. In CI, keys come straight from the environment (Actions secrets).
+_shared = os.getenv("SHARED_ENV_PATH")
+if _shared and Path(_shared).exists():
+    load_dotenv(_shared)
 load_dotenv(BOT_DIR / ".env", override=True)
 
 # ---------------------------------------------------------------- Metaculus
